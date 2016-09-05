@@ -128,6 +128,7 @@ LICENSE file.
     <module>mongodb</module>
     <module>nosqldb</module>
     <module>orientdb</module>
+    <module>pegasus</module>
     <module>rados</module>
     <module>redis</module>
     <module>riak</module>
