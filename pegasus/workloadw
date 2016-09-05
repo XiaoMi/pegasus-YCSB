@@ -1,0 +1,12 @@
+workload=com.yahoo.ycsb.workloads.CoreWorkload
+
+fieldcount=1
+fieldlength=1000
+readallfields=true
+
+readproportion=0
+updateproportion=0
+scanproportion=0
+insertproportion=1
+
+requestdistribution=zipfian
