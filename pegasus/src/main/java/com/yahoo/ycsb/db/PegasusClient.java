@@ -91,7 +91,7 @@ public class PegasusClient extends DB {
       }
       return Status.OK;
     } catch (Exception e) {
-      logger.error("Error reading value with key: " + key, e);
+      logger.error("Error reading value from table[" + table + "] with key: " + key, e);
       return Status.ERROR;
     }
   }
@@ -110,7 +110,7 @@ public class PegasusClient extends DB {
       pegasusClient().set(table, key.getBytes(), null, toJson(values));
       return Status.OK;
     } catch (Exception e) {
-      logger.error("Error updating value with key: " + key, e);
+      logger.error("Error updating value to table[" + table + "] with key: " + key, e);
       return Status.ERROR;
     }
   }
@@ -122,7 +122,7 @@ public class PegasusClient extends DB {
       pegasusClient().set(table, key.getBytes(), null, toJson(values));
       return Status.OK;
     } catch (Exception e) {
-      logger.error("Error inserting value with key: " + key, e);
+      logger.error("Error inserting value into table[" + table + "] with key: " + key, e);
       return Status.ERROR;
     }
   }
@@ -133,7 +133,7 @@ public class PegasusClient extends DB {
       pegasusClient().del(table, key.getBytes(), null);
       return Status.OK;
     } catch (Exception e) {
-      logger.error("Error deleting value", e);
+      logger.error("Error deleting value from table[" + table + "] with key: " + key, e);
       return Status.ERROR;
     }
   }

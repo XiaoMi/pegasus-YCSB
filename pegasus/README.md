@@ -21,7 +21,7 @@ This section describes how to run YCSB on Pegasus.
 
 ## 1. Start Pegasus service
 
-Ask to Pegasus cluster manager to start the cluster.
+Ask to Pegasus cluster manager to start the cluster. Need create table 'usertable'.
 
 ## 2. Install Java and Maven
 
@@ -33,7 +33,7 @@ Git clone YCSB and compile:
 
     git clone git@git.n.xiaomi.com:pegasus/ycsb.git
     cd ycsb
-    mvn -pl com.yahoo.ycsb:pegasus-binding -am clean package
+    mvn -Dcheckstyle.skip=true -DskipTests -pl com.yahoo.ycsb:pegasus-binding -am clean package
 
 ## 4. Load data and run tests
 
@@ -69,7 +69,11 @@ If not specified, then use the default configuration file.
 
   Operation timeout in milliseconds.
 
-- `retry_when_meta_loss`
+- `api_implement`
 
-  Retry time when connecting failed to meta servers.
+  RPC implemention type: sync or async. Recommend async.
+
+- `async_workers`
+
+  Work thread count for async implementation.
 
