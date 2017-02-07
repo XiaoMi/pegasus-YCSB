@@ -21,8 +21,8 @@ do
   outfile=$outdir/load_t${T}.result
   ./bin/ycsb load pegasus -s -P pegasus/workloadw -p recordcount=$N -p operationcount=$N -threads $T &>$outfile
   RunTime=`cat $outfile | grep OVERALL| grep RunTime | awk '{print $3}' | cut -d. -f1`
-  Throughput=`cat $outfile | grep OVERALL| grep Throughput | awk '{print $3}' | cut -d. -f1`
-  AvgLatency=`cat $outfile | grep INSERT | grep AverageLatency | awk '{print $3}' | cut -d. -f1`
-  P99Latency=`cat $outfile | grep INSERT | grep 99thPercentileLatency | awk '{print $3}' | cut -d. -f1`
+  Throughput=`cat $outfile | grep '\[OVERALL\]'| grep Throughput | awk '{print $3}' | cut -d. -f1`
+  AvgLatency=`cat $outfile | grep '\[INSERT\]' | grep AverageLatency | awk '{print $3}' | cut -d. -f1`
+  P99Latency=`cat $outfile | grep '\[INSERT\]' | grep 99thPercentileLatency | awk '{print $3}' | cut -d. -f1`
   echo "$T	$N	$RunTime	$Throughput	$AvgLatency	$P99Latency"
 done
