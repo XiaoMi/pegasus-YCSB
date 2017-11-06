@@ -140,11 +140,13 @@ public class PegasusClient extends DB {
 
   @Override
   public void cleanup() throws DBException {
-    try {
-      PegasusClientFactory.closeSingletonClient();
-    } catch (Exception e) {
-      throw new DBException(e);
-    }
+    // Don't close the underlying client handler 
+    // as it may be used by multiple PegasusClient object
+    // try {
+    //   PegasusClientFactory.closeSingletonClient();
+    // } catch (Exception e) {
+    //   throw new DBException(e);
+    // }
   }
 
   protected static void fromJson(
