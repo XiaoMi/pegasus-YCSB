@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# first compile the pacakge
+mvn -Dcheckstyle.skip=true -DskipTests -pl com.yahoo.ycsb:pegasus-binding -am clean package
+
 # get the version of ycsb
 version=ycsb-client-`ls pegasus/target/pegasus-binding* | awk -F'binding-' '{print $2}' | awk -F'.jar' '{print $1}'`
 
