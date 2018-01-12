@@ -69,11 +69,15 @@ If not specified, then use the default configuration file.
 
   Operation timeout in milliseconds.
 
-- `api_implement`
-
-  RPC implemention type: sync or async. Recommend async.
-
 - `async_workers`
 
-  Work thread count for async implementation.
+  IO work thread count.
+
+- `enable_perf_counter`
+
+  If enable perf counter.
+
+- `perf_counter_tags`
+
+  Perf counter tags, like "a=1,b=2".
 
