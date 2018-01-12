@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# first compile the pacakge
+# first compile the package
 mvn -Dcheckstyle.skip=true -DskipTests -pl com.yahoo.ycsb:pegasus-binding -am clean package
 
 # get the version of ycsb
@@ -25,6 +25,6 @@ if [ -f $pack_template ]; then
     echo "Modifying $pack_template ..."
     sed -i "/^artifact:/c artifact: \"pegasus\"" $pack_template
     sed -i "/^version:/c version: \"$version\"" $pack_template
-    sed -i "/^build:/c build: \"\.\/pkg_pegasus.sh\"" $pack_template
+    sed -i "/^build:/c build: \"\.\/pack_pegasus.sh\"" $pack_template
     sed -i "/^source:/c source: \"$ycsb_dir\"" $pack_template
 fi
