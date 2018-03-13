@@ -34,7 +34,8 @@ This section describes how to run YCSB on Pegasus.
 
 ## 1. Start Pegasus service
 
-Ask to Pegasus cluster manager to start the cluster. Need create table 'usertable' for test.
+Ask to Pegasus cluster manager to [start the
+cluster](https://github.com/XiaoMi/pegasus/wiki/%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2), and create table `usertable` for test.
 
 ## 2. Install Java and Maven
 
@@ -42,7 +43,14 @@ See step 2 in [`mongodb/README.md`](mongodb/README.md).
 
 ## 3. Set up YCSB
 
-Git clone YCSB and compile:
+Before set up YCSB, you should install [Pegasus Java Client](https://github.com/XiaoMi/pegasus-java-client) firstly:
+
+    wget https://github.com/XiaoMi/pegasus-java-client/archive/1.7.1-thrift-0.11.0-inlined-release.tar.gz
+    tar xfz 1.7.1-thrift-0.11.0-inlined-release.tar.gz
+    cd pegasus-java-client-1.7.1-thrift-0.11.0-inlined-release/
+    mvn clean install -DskipTests
+
+Git clone YCSB and build it:
 
     git clone https://github.com/XiaoMi/pegasus-YCSB.git
     cd pegasus-YCSB
@@ -57,7 +65,7 @@ A default log4j configuration file is provided in
 [`pegasus/conf/log4j.properties`](pegasus/conf/log4j.properties).
 
 Because `pegasus/conf` is added into classpath by default, so these configuration files will be 
-found automatically.  But You can also specify configuration file on the command line via `-p`, e.g.:
+found automatically.  Also You can specify configuration file on the command line via `-p`, e.g.:
 
     ./bin/ycsb load pegasus -s -P workloads/workload_pegasus \
         -p "pegasus.config=file://./pegasus/conf/pegasus.properties" > outputLoad.txt
