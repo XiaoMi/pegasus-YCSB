@@ -26,6 +26,64 @@ http://wiki.github.com/brianfrankcooper/YCSB/
 https://labs.yahoo.com/news/yahoo-cloud-serving-benchmark/
 ycsb-users@yahoogroups.com  
 
+
+Test Pegasus
+------------
+
+This section describes how to run YCSB on Pegasus.
+
+## 1. Start Pegasus service
+
+Ask to Pegasus cluster manager to start the cluster. Need create table 'usertable' for test.
+
+## 2. Install Java and Maven
+
+See step 2 in [`mongodb/README.md`](mongodb/README.md).
+
+## 3. Set up YCSB
+
+Git clone YCSB and compile:
+
+    git clone https://github.com/XiaoMi/pegasus-YCSB.git
+    cd pegasus-YCSB
+    mvn -Dcheckstyle.skip=true -DskipTests -pl com.yahoo.ycsb:pegasus-binding -am clean package
+
+## 4. Configuration
+
+A default pegasus configuration file is provided in
+[`pegasus/conf/pegasus.properties`](pegasus/conf/pegasus.properties).
+
+A default log4j configuration file is provided in
+[`pegasus/conf/log4j.properties`](pegasus/conf/log4j.properties).
+
+Because `pegasus/conf` is added into classpath by default, so these configuration files will be 
+found automatically.  But You can also specify configuration file on the command line via `-p`, e.g.:
+
+    ./bin/ycsb load pegasus -s -P workloads/workload_pegasus \
+        -p "pegasus.config=file://./pegasus/conf/pegasus.properties" > outputLoad.txt
+
+## 5. Load data and run tests
+
+Load the data:
+
+    ./bin/ycsb load pegasus -s -P workloads/workload_pegasus > outputLoad.txt
+
+Run the workload test:
+
+    ./bin/ycsb run pegasus -s -P workloads/workload_pegasus > outputRun.txt
+
+## 6. Distributed running tests
+
+Generate `pegasus-YCSB-${VERSION}.tar.gz` package:
+
+    ./pack_pegasus.sh
+
+Transfer package to target machines, then:
+
+    tar xfz pegasus-YCSB-${VERSION}.tar.gz
+    cd pegasus-YCSB-${VERSION}
+    ./start.sh <load|run>
+
 Getting Started
 ---------------
 
