@@ -21,3 +21,17 @@ chmod +x $pkg_dir/*.sh
 
 tar cfz $pkg_dir.tar.gz $pkg_dir
 
+# modify the package config
+pack_template=""
+if [ -n "$MINOS_CONFIG_FILE" ]; then
+    pack_template=`dirname $MINOS_CONFIG_FILE`/xiaomi-config/package/pegasus.yaml
+fi
+
+ycsb_dir=`pwd`
+if [ -f $pack_template ]; then
+    echo "Modifying $pack_template ..."
+    sed -i "/^artifact:/c artifact: \"pegasus\"" $pack_template
+    sed -i "/^version:/c version: \"$version\"" $pack_template
+    sed -i "/^build:/c build: \"\.\/pack_pegasus.sh\"" $pack_template
+    sed -i "/^source:/c source: \"$ycsb_dir\"" $pack_template
+fi
