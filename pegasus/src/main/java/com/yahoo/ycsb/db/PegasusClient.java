@@ -37,6 +37,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusClientInterface;
+import com.xiaomi.infra.pegasus.client.PException;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
@@ -107,16 +108,18 @@ public class PegasusClient extends DB {
       if (value != null) {
         fromJson(value, fields, result);
       }*/
-      int intKey = Integer.parseInt(key.substring(key.length()-8,key.length()-1));
+      int intKey = Integer.parseInt(key.substring(key.length()-8))%50000000;
 
       List<Pair<byte[], byte[]>> keys = new ArrayList<Pair<byte[], byte[]>>();
       for(int i=0;i<10000;i++) {
-        byte[] hashKey = getMD5(Integer.toString(intKey+i));
+        byte[] hashKey = getMD5(Integer.toString((intKey+i)%50000000));
         keys.add(Pair.of(hashKey,"".getBytes()));
       }
-      List<byte[]> values = new ArrayList<byte[]>();
+      List<Pair<PException, byte[]>> resultsBatchGet = new ArrayList<Pair<PException, byte[]>>();
 
-      pegasusClient().batchGet(table,keys,values);
+      int count = pegasusClient().batchGet2(table,keys,resultsBatchGet);
+      String s = Integer.toString((count));
+      System.out.println("batchSet " + s + " items.");
       return Status.OK;
     } catch (Exception e) {
       logger.error("Error reading value from table[" + table + "] with key: " + key, e);
