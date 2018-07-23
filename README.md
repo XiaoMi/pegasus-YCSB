@@ -37,6 +37,9 @@ This section describes how to run YCSB on Pegasus.
 Ask to Pegasus cluster manager to [start the
 cluster](https://github.com/XiaoMi/pegasus/wiki/%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2), and create table `usertable` for test.
 
+If you want to use a different table name, please config the `table` option in 
+[`workloads/workload_pegasus`](workloads/workload_pegasus).
+
 ## 2. Install Java and Maven
 
 See step 2 in [`mongodb/README.md`](mongodb/README.md).
