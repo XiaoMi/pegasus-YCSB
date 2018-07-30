@@ -193,10 +193,10 @@ def is_distribution():
 # Given module is full module name eg. 'core' or 'couchbase-binding'
 def get_classpath_from_maven(module):
     try:
-        debug("Running 'mvn -pl com.yahoo.ycsb:" + module + " -am package -DskipTests "
+        debug("Running 'mvn -pl com.yahoo.ycsb:" + module + " -am package -DskipTests -Dcheckstyle.skip=true"
               "dependency:build-classpath -DincludeScope=compile -Dmdep.outputFilterFile=true'")
         mvn_output = check_output(["mvn", "-pl", "com.yahoo.ycsb:" + module,
-                                   "-am", "package", "-DskipTests",
+                                   "-am", "package", "-DskipTests","-Dcheckstyle.skip=true",
                                    "dependency:build-classpath",
                                    "-DincludeScope=compile",
                                    "-Dmdep.outputFilterFile=true"])

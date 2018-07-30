@@ -69,7 +69,8 @@ A default log4j configuration file is provided in
 
 Because `pegasus/conf` is added into classpath by default, so these configuration files will be 
 found automatically.  Also You can specify configuration file on the command line via `-p`, e.g.:
-
+    
+    # example for specifying. If you have executed this command, skip the "Load the data" phase in section 5.
     ./bin/ycsb load pegasus -s -P workloads/workload_pegasus \
         -p "pegasus.config=file://./pegasus/conf/pegasus.properties" > outputLoad.txt
 
