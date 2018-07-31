@@ -30,9 +30,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusClientInterface;
+import com.xiaomi.infra.pegasus.client.PException;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
@@ -41,6 +46,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 
 import org.apache.log4j.Logger;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Concrete Pegasus client implementation.
@@ -80,15 +88,38 @@ public class PegasusClient extends DB {
     }
   }
 
+  public static byte[] getMD5(String input) {
+    try {
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      byte[] messageDigest = md.digest(input.getBytes());
+      return messageDigest;
+    }
+    catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @Override
   public Status read(
       String table, String key, Set<String> fields,
       HashMap<String, ByteIterator> result) {
     try {
-      byte[] value = pegasusClient().get(table, key.getBytes(), null);
+      /*byte[] value = pegasusClient().get(table, key.getBytes(), null);
       if (value != null) {
         fromJson(value, fields, result);
+      }*/
+      int intKey = Integer.parseInt(key.substring(key.length()-8))%50000000;
+
+      List<Pair<byte[], byte[]>> keys = new ArrayList<Pair<byte[], byte[]>>();
+      for(int i=0;i<10000;i++) {
+        byte[] hashKey = getMD5(Integer.toString((intKey+i)%50000000));
+        keys.add(Pair.of(hashKey,"".getBytes()));
       }
+      List<Pair<PException, byte[]>> resultsBatchGet = new ArrayList<Pair<PException, byte[]>>();
+
+      int count = pegasusClient().batchGet2(table,keys,resultsBatchGet);
+      String s = Integer.toString((count));
+      System.out.println("batchSet " + s + " items.");
       return Status.OK;
     } catch (Exception e) {
       logger.error("Error reading value from table[" + table + "] with key: " + key, e);

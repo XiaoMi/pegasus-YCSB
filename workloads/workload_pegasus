@@ -16,9 +16,9 @@ requestdistribution=zipfian
 maxscanlength=1000
 scanlengthdistribution=uniform
 insertorder=hashed
-operationcount=100000000
+operationcount=1000
 
 table=usertable
-recordcount=100000000
+recordcount=100
 core_workload_insertion_retry_limit=10
 core_workload_insertion_retry_interval=3
