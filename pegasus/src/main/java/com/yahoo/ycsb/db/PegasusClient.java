@@ -17,6 +17,7 @@
 
 package com.yahoo.ycsb.db;
 
+import com.xiaomi.infra.pegasus.client.PException;
 import com.yahoo.ycsb.ByteIterator;
 import com.yahoo.ycsb.DB;
 import com.yahoo.ycsb.DBException;
@@ -25,15 +26,12 @@ import com.yahoo.ycsb.StringByteIterator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusClientInterface;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
@@ -53,11 +51,28 @@ public class PegasusClient extends DB {
 
   public static final String CONFIG_PROPERTY = "pegasus.config";
 
+  public static final String OPERATOR_WRITE_MODE = "write_mode";
+
+  public static final String OPERATOR_READ_MODE = "read_mode";
+
+  public static final String SORT_KEYS_COUT = "sort_keys_count";
   /**
    * The PegasusClient implementation that will be used to communicate
    * with the pegasus server.
    */
   private PegasusClientInterface client = null;
+
+  /**
+   * The PegasusClient set/get mode
+   * S=Single: set/get M=multi:multiSet/multiGet B=Batch:batchSet/batchGet IV=invalid mode
+   * example:SS is set value and get value
+   */
+  private enum OperatorMode {
+    SS,MM,BB,MB,BM,IV
+  }
+
+  private OperatorMode operatorMode = OperatorMode.IV;
+  private List<byte[]> sortKeys = new ArrayList<>();
 
   /**
    * @returns Underlying Pegasus client implementation.
@@ -69,14 +84,45 @@ public class PegasusClient extends DB {
   @Override
   public void init() throws DBException {
     try {
-      String configPath = getProperties().getProperty(CONFIG_PROPERTY);
-      if (configPath == null) {
-        client = PegasusClientFactory.getSingletonClient();
-      } else {
-        client = PegasusClientFactory.getSingletonClient(configPath);
-      }
+      initOperatorMode();
+      initPegasusClient();
     } catch (Exception e) {
       throw new DBException(e);
+    }
+  }
+
+  private void initOperatorMode() throws Exception {
+    String writeMode = getProperties().getProperty(OPERATOR_WRITE_MODE, "single");
+    String readMode = getProperties().getProperty(OPERATOR_READ_MODE, "single");
+    String sortKeysCount = getProperties().getProperty(SORT_KEYS_COUT, "10");
+
+    int count = Integer.parseInt(sortKeysCount);
+    while (--count >= 0) {
+      sortKeys.add(String.valueOf(count).getBytes());
+    }
+
+    if (writeMode.equals("single") && readMode.equals("single")) {
+      operatorMode = OperatorMode.SS;
+    } else if (writeMode.equals("multi") && readMode.equals("multi")) {
+      operatorMode = OperatorMode.MM;
+    } else if (writeMode.equals("batch") && readMode.equals("batch")) {
+      operatorMode = OperatorMode.BB;
+    } else if (writeMode.equals("multi") && readMode.equals("batch")) {
+      operatorMode = OperatorMode.MB;
+    } else if (writeMode.equals("batch") && readMode.equals("multi")) {
+      operatorMode = OperatorMode.BM;
+    } else {
+      operatorMode = OperatorMode.IV;
+      throw new Exception("The operator mode set error");
+    }
+  }
+
+  private void initPegasusClient() throws PException {
+    String configPath = getProperties().getProperty(CONFIG_PROPERTY);
+    if (configPath == null) {
+      client = PegasusClientFactory.getSingletonClient();
+    } else {
+      client = PegasusClientFactory.getSingletonClient(configPath);
     }
   }
 
@@ -84,6 +130,19 @@ public class PegasusClient extends DB {
   public Status read(
       String table, String key, Set<String> fields,
       HashMap<String, ByteIterator> result) {
+    switch (operatorMode) {
+      case SS :return singleGet(table, key, fields, result);
+      case MM :return multiGet(table, key, fields, result);
+      case MB :return multiGet(table, key, fields, result);
+      case BM :return batchGet(table, key, fields, result);
+      case BB :return batchGet(table, key, fields, result);
+      default: return Status.ERROR;
+    }
+  }
+
+  private Status singleGet(
+    String table, String key, Set<String> fields,
+    Map<String, ByteIterator> result) {
     try {
       byte[] value = pegasusClient().get(table, key.getBytes(), null);
       if (value != null) {
@@ -96,6 +155,31 @@ public class PegasusClient extends DB {
     }
   }
 
+  private Status multiGet(
+    String table, String key, Set<String> fields,
+    Map<String, ByteIterator> result) {
+    try {
+      List<Pair<byte[], byte[]>> values = new LinkedList<>();
+      boolean res = pegasusClient().multiGet(table, key.getBytes(), sortKeys, values);
+      if (res && !values.isEmpty()) {
+        for (Pair<byte[], byte[]> value : values) {
+          fromJson(value.getValue(), fields, result);
+        }
+      }
+      return Status.OK;
+    } catch (Exception e) {
+      logger.error("Error reading value from table[" + table + "] with key: " + key, e);
+      return Status.ERROR;
+    }
+  }
+
+  private Status batchGet(
+    String table, String key, Set<String> fields,
+    Map<String, ByteIterator> result
+  ){
+    return null;
+  }
+
   @Override
   public Status scan(
       String table, String startkey, int recordcount, Set<String> fields,
@@ -106,6 +190,30 @@ public class PegasusClient extends DB {
   @Override
   public Status update(
       String table, String key, HashMap<String, ByteIterator> values) {
+    switch (operatorMode) {
+      case SS :return singleSet(table, key, values);
+      case MM :return multiSet(table, key,values);
+      case MB :return multiSet(table, key, values);
+      case BM :return batchSet(table, key, values);
+      case BB :return batchSet(table, key, values);
+      default: return Status.ERROR;
+    }
+  }
+
+  @Override
+  public Status insert(
+      String table, String key, HashMap<String, ByteIterator> values) {
+    switch (operatorMode) {
+      case SS :return singleSet(table, key, values);
+      case MM :return multiSet(table, key,values);
+      case MB :return multiSet(table, key, values);
+      case BM :return batchSet(table, key, values);
+      case BB :return batchSet(table, key, values);
+      default: return Status.ERROR;
+    }
+  }
+
+  private Status singleSet(String table, String key, Map<String, ByteIterator> values) {
     try {
       pegasusClient().set(table, key.getBytes(), null, toJson(values));
       return Status.OK;
@@ -115,16 +223,23 @@ public class PegasusClient extends DB {
     }
   }
 
-  @Override
-  public Status insert(
-      String table, String key, HashMap<String, ByteIterator> values) {
+  private Status multiSet(String table, String key, Map<String, ByteIterator> values) {
     try {
-      pegasusClient().set(table, key.getBytes(), null, toJson(values));
+      List<Pair<byte[], byte[]>> sortValues = new LinkedList<>();
+      byte[] value = toJson(values);
+      for (byte[] sortKey : sortKeys) {
+        sortValues.add(Pair.of(sortKey, value));
+      }
+      pegasusClient().multiSet(table, key.getBytes(), sortValues);
       return Status.OK;
     } catch (Exception e) {
-      logger.error("Error inserting value into table[" + table + "] with key: " + key, e);
+      logger.error("Error updating value to table[" + table + "] with key: " + key, e);
       return Status.ERROR;
     }
+  }
+
+  private Status batchSet(String table, String key, HashMap<String, ByteIterator> values) {
+    return null;
   }
 
   @Override
