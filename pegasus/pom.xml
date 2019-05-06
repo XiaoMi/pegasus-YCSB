@@ -48,7 +48,7 @@ LICENSE file.
     <dependency>
       <groupId>com.xiaomi.infra</groupId>
       <artifactId>pegasus-client</artifactId>
-      <version>1.10.0-thrift-0.11.0-inlined</version>
+      <version>1.12.SNAPSHOT-thrift-0.11.0-inlined</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

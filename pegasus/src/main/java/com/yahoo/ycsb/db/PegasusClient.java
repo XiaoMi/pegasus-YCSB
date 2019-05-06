@@ -48,11 +48,12 @@ public class PegasusClient extends DB {
 
   public static final String CONFIG_PROPERTY = "pegasus.config";
 
-  public static final String OPERATOR_WRITE_MODE = "write_mode";
+  public static final String OPERATION_WRITE_MODE = "write_mode";
 
-  public static final String OPERATOR_READ_MODE = "read_mode";
+  public static final String OPERATION_READ_MODE = "read_mode";
 
-  public static final String SORT_KEYS_COUT = "sort_keys_count";
+  public static final String FIELD_COUNT_PROPERTY = "fieldcount";
+
   /**
    * The PegasusClient implementation that will be used to communicate
    * with the pegasus server.
@@ -63,15 +64,15 @@ public class PegasusClient extends DB {
    * The PegasusClient write/read(set/get) mode
    */
   private enum WriteMode {
-    single,batch,multi,invalid
+    SINGLE, BATCH, MULTI, INVALID
   }
 
   private enum ReadMode {
-    single,batch,multi,range,invalid
+    SINGLE, BATCH, MULTI, RANGE, INVALID
   }
 
-  private WriteMode writeMode = WriteMode.invalid;
-  private ReadMode readMode = ReadMode.invalid;
+  private WriteMode writeMode = WriteMode.INVALID;
+  private ReadMode readMode = ReadMode.INVALID;
   private List<byte[]> sortKeys = new ArrayList<>();
 
   /**
@@ -84,17 +85,17 @@ public class PegasusClient extends DB {
   @Override
   public void init() throws DBException {
     try {
-      initOperatorMode();
+      initOperationMode();
       initPegasusClient();
     } catch (Exception e) {
       throw new DBException(e);
     }
   }
 
-  private void initOperatorMode() throws Exception {
-    String writeModeStr = getProperties().getProperty(OPERATOR_WRITE_MODE, "single");
-    String readModeStr = getProperties().getProperty(OPERATOR_READ_MODE, "single");
-    String sortKeysCountStr = getProperties().getProperty(SORT_KEYS_COUT, "10");
+  private void initOperationMode() throws Exception {
+    String writeModeStr = getProperties().getProperty(OPERATION_WRITE_MODE, "single");
+    String readModeStr = getProperties().getProperty(OPERATION_READ_MODE, "single");
+    String sortKeysCountStr = getProperties().getProperty(FIELD_COUNT_PROPERTY, "10");
 
     int count = Integer.parseInt(sortKeysCountStr);
     while ((--count) >= 0) {
@@ -102,33 +103,33 @@ public class PegasusClient extends DB {
     }
 
     if (writeModeStr.equals("single") && readModeStr.equals("single")) {
-      writeMode = WriteMode.single;
-      readMode = ReadMode.single;
-      System.out.println("OperatorMode:write=single,read=single");
+      writeMode = WriteMode.SINGLE;
+      readMode = ReadMode.SINGLE;
+      System.out.println("OperationMode:write=single,read=single");
     } else if (writeModeStr.equals("batch") && readModeStr.equals("batch")) {
-      writeMode = WriteMode.batch;
-      readMode = ReadMode.batch;
-      System.out.println("OperatorMode:write=batch,read=batch");
+      writeMode = WriteMode.BATCH;
+      readMode = ReadMode.BATCH;
+      System.out.println("OperationMode:write=batch,read=batch");
     } else if (writeModeStr.equals("multi") && readModeStr.equals("multi")) {
-      writeMode = WriteMode.multi;
-      readMode = ReadMode.multi;
-      System.out.println("OperatorMode:write=multi,read=multi");
+      writeMode = WriteMode.MULTI;
+      readMode = ReadMode.MULTI;
+      System.out.println("OperationMode:write=multi,read=multi");
     } else if (writeModeStr.equals("multi") && readModeStr.equals("batch")) {
-      writeMode = WriteMode.multi;
-      readMode = ReadMode.batch;
-      System.out.println("OperatorMode:write=multi,read=batch");
+      writeMode = WriteMode.MULTI;
+      readMode = ReadMode.BATCH;
+      System.out.println("OperationMode:write=multi,read=batch");
     } else if (writeModeStr.equals("multi") && readModeStr.equals("range")) {
-      writeMode = WriteMode.multi;
-      readMode = ReadMode.range;
-      System.out.println("OperatorMode:write=multi,read=range");
+      writeMode = WriteMode.MULTI;
+      readMode = ReadMode.RANGE;
+      System.out.println("OperationMode:write=multi,read=range");
     } else if (writeModeStr.equals("batch") && readModeStr.equals("multi")) {
-      writeMode = WriteMode.batch;
-      readMode = ReadMode.multi;
-      System.out.println("OperatorMode:write=batch,read=multi");
+      writeMode = WriteMode.BATCH;
+      readMode = ReadMode.MULTI;
+      System.out.println("OperationMode:write=batch,read=multi");
     } else {
-      writeMode = WriteMode.invalid;
-      readMode = ReadMode.invalid;
-      throw new Exception("The operator mode is not been set right");
+      writeMode = WriteMode.INVALID;
+      readMode = ReadMode.INVALID;
+      throw new Exception("The Operation mode is not been set right");
     }
   }
 
@@ -146,13 +147,13 @@ public class PegasusClient extends DB {
     String table, String key, Set<String> fields,
     HashMap<String, ByteIterator> result) {
     switch (readMode) {
-      case single:
+      case SINGLE:
         return singleGet(table, key, fields, result);
-      case batch:
+      case BATCH:
         return batchGet(table, key, fields, result);
-      case multi:
+      case MULTI:
         return multiGet(table, key, fields, result);
-      case range:
+      case RANGE:
         return multiGetRange(table, key, fields, result);
       default:
         return Status.ERROR;
@@ -177,8 +178,7 @@ public class PegasusClient extends DB {
 
   private Status batchGet(
     String table, String key, Set<String> fields,
-    Map<String, ByteIterator> result
-  ) {
+    Map<String, ByteIterator> result) {
     try {
       List<Pair<byte[], byte[]>> batchKeys = new ArrayList<>();
       List<byte[]> values = new ArrayList<>();
@@ -225,7 +225,7 @@ public class PegasusClient extends DB {
       byte[] hashKey = key.getBytes();
       byte[] startSortKey = String.valueOf(3).getBytes();
       byte[] stopSortKey = String.valueOf(7).getBytes();
-      boolean res = pegasusClient().multiGet(table, hashKey, startSortKey,stopSortKey, new MultiGetOptions(),values);
+      boolean res = pegasusClient().multiGet(table, hashKey, startSortKey, stopSortKey, new MultiGetOptions(), values);
       if (res && !values.isEmpty()) {
         for (Pair<byte[], byte[]> value : values) {
           fromJson(value.getValue(), fields, result);
@@ -249,11 +249,11 @@ public class PegasusClient extends DB {
   public Status update(
     String table, String key, HashMap<String, ByteIterator> values) {
     switch (writeMode) {
-      case single:
+      case SINGLE:
         return singleSet(table, key, values);
-      case batch:
+      case BATCH:
         return batchSet(table, key, values);
-      case multi:
+      case MULTI:
         return multiSet(table, key, values);
       default:
         return Status.ERROR;
@@ -264,11 +264,11 @@ public class PegasusClient extends DB {
   public Status insert(
     String table, String key, HashMap<String, ByteIterator> values) {
     switch (writeMode) {
-      case single:
+      case SINGLE:
         return singleSet(table, key, values);
-      case batch:
+      case BATCH:
         return batchSet(table, key, values);
-      case multi:
+      case MULTI:
         return multiSet(table, key, values);
       default:
         return Status.ERROR;
