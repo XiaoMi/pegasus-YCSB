@@ -62,6 +62,13 @@ public class PegasusClient extends DB {
 
   /**
    * The PegasusClient write/read(set/get) mode
+   *
+   * SINGLE: get/set single value
+   * BATCH: get/set batch value
+   * MULTI: multi_get/multi_set values for all sort_key
+   * RANGE: multi_get range values for range sort_key, now the sort_key range is from first to last default
+   *
+   * The reason for setting up the RANGE mode is that the implementation mechanism of multi_get and multi_get_range of pegasus is different.
    */
   private enum WriteMode {
     SINGLE, BATCH, MULTI, INVALID
@@ -74,6 +81,8 @@ public class PegasusClient extends DB {
   private WriteMode writeMode = WriteMode.INVALID;
   private ReadMode readMode = ReadMode.INVALID;
   private List<byte[]> sortKeys = new ArrayList<>();
+  private byte[] startSortKey = null;
+  private byte[] stopSortKey = null;
 
   /**
    * @returns Underlying Pegasus client implementation.
@@ -98,6 +107,8 @@ public class PegasusClient extends DB {
     String sortKeysCountStr = getProperties().getProperty(FIELD_COUNT_PROPERTY, "10");
 
     int count = Integer.parseInt(sortKeysCountStr);
+    startSortKey = String.valueOf(0).getBytes();
+    stopSortKey = String.valueOf(count).getBytes();
     while ((--count) >= 0) {
       sortKeys.add(String.valueOf(count).getBytes());
     }
@@ -152,7 +163,7 @@ public class PegasusClient extends DB {
       case BATCH:
         return batchGet(table, key, fields, result);
       case MULTI:
-        return multiGet(table, key, fields, result);
+        return multiGetAll(table, key, fields, result);
       case RANGE:
         return multiGetRange(table, key, fields, result);
       default:
@@ -199,7 +210,7 @@ public class PegasusClient extends DB {
     }
   }
 
-  private Status multiGet(
+  private Status multiGetAll(
     String table, String key, Set<String> fields,
     Map<String, ByteIterator> result) {
     try {
@@ -222,10 +233,7 @@ public class PegasusClient extends DB {
     HashMap<String, ByteIterator> result) {
     try {
       List<Pair<byte[], byte[]>> values = new ArrayList<>();
-      byte[] hashKey = key.getBytes();
-      byte[] startSortKey = String.valueOf(3).getBytes();
-      byte[] stopSortKey = String.valueOf(7).getBytes();
-      boolean res = pegasusClient().multiGet(table, hashKey, startSortKey, stopSortKey, new MultiGetOptions(), values);
+      boolean res = pegasusClient().multiGet(table, key.getBytes(), startSortKey, stopSortKey, new MultiGetOptions(), values);
       if (res && !values.isEmpty()) {
         for (Pair<byte[], byte[]> value : values) {
           fromJson(value.getValue(), fields, result);
