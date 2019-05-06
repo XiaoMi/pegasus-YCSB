@@ -233,7 +233,7 @@ public class PegasusClient extends DB {
       }
       return Status.OK;
     } catch (Exception e) {
-      logger.error("Error multi reading value from table[" + table + "] with key: " + key, e);
+      logger.error("Error multi range reading value from table[" + table + "] with key: " + key, e);
       return Status.ERROR;
     }
   }
