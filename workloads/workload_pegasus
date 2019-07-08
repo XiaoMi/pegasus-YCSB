@@ -15,14 +15,15 @@ requestdistribution=zipfian
 maxscanlength=1000
 scanlengthdistribution=uniform
 insertorder=hashed
-operationcount=100000000
+operationcount=100000
 
 table=usertable
-recordcount=100000000
+result_table=result
+recordcount=100
 core_workload_insertion_retry_limit=10
 core_workload_insertion_retry_interval=3
 
 write_mode=single
 read_mode=single
 fieldcount=10
-hdrhistogram.percentiles=95,99,999,9999
+hdrhistogram.percentiles=95,99,99.9,99.99
