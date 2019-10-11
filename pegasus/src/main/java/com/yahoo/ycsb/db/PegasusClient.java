@@ -107,9 +107,9 @@ public class PegasusClient extends DB {
    * Other combinations are considered invalid, for example:
    * single-multi: setting single value, but can't get multi value
    * When combinations are invalid, throw exception.
-   * @throws Exception
+   * @throws IllegalArgumentException
    */
-  private void initOperationMode() throws Exception {
+  private void initOperationMode() throws IllegalArgumentException {
     String writeModeStr = getProperties().getProperty(WRITE_MODE, "single");
     String readModeStr = getProperties().getProperty(READ_MODE, "single");
     String sortKeysCountStr = getProperties().getProperty(SORT_KEY_COUNT, "10");
@@ -124,32 +124,27 @@ public class PegasusClient extends DB {
     if (writeModeStr.equals("single") && readModeStr.equals("single")) {
       writeMode = WriteMode.SINGLE;
       readMode = ReadMode.SINGLE;
-      System.out.println("OperationMode:write=single,read=single");
     } else if (writeModeStr.equals("batch") && readModeStr.equals("batch")) {
       writeMode = WriteMode.BATCH;
       readMode = ReadMode.BATCH;
-      System.out.println("OperationMode:write=batch,read=batch");
     } else if (writeModeStr.equals("multi") && readModeStr.equals("multi")) {
       writeMode = WriteMode.MULTI;
       readMode = ReadMode.MULTI;
-      System.out.println("OperationMode:write=multi,read=multi");
     } else if (writeModeStr.equals("multi") && readModeStr.equals("batch")) {
       writeMode = WriteMode.MULTI;
       readMode = ReadMode.BATCH;
-      System.out.println("OperationMode:write=multi,read=batch");
     } else if (writeModeStr.equals("multi") && readModeStr.equals("range")) {
       writeMode = WriteMode.MULTI;
       readMode = ReadMode.RANGE;
-      System.out.println("OperationMode:write=multi,read=range");
     } else if (writeModeStr.equals("batch") && readModeStr.equals("multi")) {
       writeMode = WriteMode.BATCH;
       readMode = ReadMode.MULTI;
-      System.out.println("OperationMode:write=batch,read=multi");
     } else {
       writeMode = WriteMode.INVALID;
       readMode = ReadMode.INVALID;
-      throw new Exception("The Operation mode is not been set right");
+      throw new IllegalArgumentException("The operation mode is not been supported");
     }
+    System.out.println("OperationMode:writeMode=" + writeModeStr + ",readMode=" + readModeStr);
   }
 
   private void initPegasusClient() throws PException {
@@ -195,7 +190,7 @@ public class PegasusClient extends DB {
     }
   }
 
-  //note:The hashKeys are designed to be the same, but no impact on performance
+  //todo:The hashKeys are designed to be the same, maybe impact on performance
   private Status batchGet(
     String table, String key, Set<String> fields,
     Map<String, ByteIterator> result) {
@@ -302,7 +297,7 @@ public class PegasusClient extends DB {
     }
   }
 
-  //note:The hashKeys are designed to be the same, but no impact on performance
+  //todo:The hashKeys are designed to be the same, maybe impact on performance
   private Status batchSet(String table, String key, HashMap<String, ByteIterator> values) {
     try {
       List<SetItem> setItemList = new ArrayList<>();
