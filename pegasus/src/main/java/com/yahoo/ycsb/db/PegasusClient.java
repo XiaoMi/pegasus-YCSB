@@ -101,6 +101,14 @@ public class PegasusClient extends DB {
     }
   }
 
+  /**
+   * There are currently six write-read combination modes by default:
+   * single-single; batch-batch; multi-multi; multi-batch; multi-range; batch-multi
+   * Other combinations are considered invalid, for example:
+   * single-multi: setting single value, but can't get multi value
+   * When combinations are invalid, throw exception.
+   * @throws Exception
+   */
   private void initOperationMode() throws Exception {
     String writeModeStr = getProperties().getProperty(WRITE_MODE, "single");
     String readModeStr = getProperties().getProperty(READ_MODE, "single");
