@@ -187,6 +187,7 @@ public class PegasusClient extends DB {
     }
   }
 
+  //note:The hashKeys are designed to be the same, but no impact on performance
   private Status batchGet(
     String table, String key, Set<String> fields,
     Map<String, ByteIterator> result) {
@@ -293,6 +294,7 @@ public class PegasusClient extends DB {
     }
   }
 
+  //note:The hashKeys are designed to be the same, but no impact on performance
   private Status batchSet(String table, String key, HashMap<String, ByteIterator> values) {
     try {
       List<SetItem> setItemList = new ArrayList<>();
