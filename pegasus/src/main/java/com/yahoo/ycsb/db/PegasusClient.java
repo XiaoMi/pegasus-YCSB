@@ -48,11 +48,11 @@ public class PegasusClient extends DB {
 
   public static final String CONFIG_PROPERTY = "pegasus.config";
 
-  public static final String OPERATION_WRITE_MODE = "write_mode";
+  public static final String WRITE_MODE = "write_mode";
 
-  public static final String OPERATION_READ_MODE = "read_mode";
+  public static final String READ_MODE = "read_mode";
 
-  public static final String FIELD_COUNT_PROPERTY = "fieldcount";
+  public static final String SORT_KEY_COUNT = "sort_key_count";
 
   /**
    * The PegasusClient implementation that will be used to communicate
@@ -102,9 +102,9 @@ public class PegasusClient extends DB {
   }
 
   private void initOperationMode() throws Exception {
-    String writeModeStr = getProperties().getProperty(OPERATION_WRITE_MODE, "single");
-    String readModeStr = getProperties().getProperty(OPERATION_READ_MODE, "single");
-    String sortKeysCountStr = getProperties().getProperty(FIELD_COUNT_PROPERTY, "10");
+    String writeModeStr = getProperties().getProperty(WRITE_MODE, "single");
+    String readModeStr = getProperties().getProperty(READ_MODE, "single");
+    String sortKeysCountStr = getProperties().getProperty(SORT_KEY_COUNT, "10");
 
     int count = Integer.parseInt(sortKeysCountStr);
     startSortKey = String.valueOf(0).getBytes();
@@ -159,11 +159,11 @@ public class PegasusClient extends DB {
     HashMap<String, ByteIterator> result) {
     switch (readMode) {
       case SINGLE:
-        return singleGet(table, key, fields, result);
+        return get(table, key, fields, result);
       case BATCH:
         return batchGet(table, key, fields, result);
       case MULTI:
-        return multiGetAll(table, key, fields, result);
+        return multiGet(table, key, fields, result);
       case RANGE:
         return multiGetRange(table, key, fields, result);
       default:
@@ -172,7 +172,7 @@ public class PegasusClient extends DB {
   }
 
 
-  private Status singleGet(
+  private Status get(
     String table, String key, Set<String> fields,
     Map<String, ByteIterator> result) {
     try {
@@ -210,7 +210,7 @@ public class PegasusClient extends DB {
     }
   }
 
-  private Status multiGetAll(
+  private Status multiGet(
     String table, String key, Set<String> fields,
     Map<String, ByteIterator> result) {
     try {
@@ -258,7 +258,7 @@ public class PegasusClient extends DB {
     String table, String key, HashMap<String, ByteIterator> values) {
     switch (writeMode) {
       case SINGLE:
-        return singleSet(table, key, values);
+        return set(table, key, values);
       case BATCH:
         return batchSet(table, key, values);
       case MULTI:
@@ -273,7 +273,7 @@ public class PegasusClient extends DB {
     String table, String key, HashMap<String, ByteIterator> values) {
     switch (writeMode) {
       case SINGLE:
-        return singleSet(table, key, values);
+        return set(table, key, values);
       case BATCH:
         return batchSet(table, key, values);
       case MULTI:
@@ -283,7 +283,7 @@ public class PegasusClient extends DB {
     }
   }
 
-  private Status singleSet(String table, String key, Map<String, ByteIterator> values) {
+  private Status set(String table, String key, Map<String, ByteIterator> values) {
     try {
       pegasusClient().set(table, key.getBytes(), null, toJson(values));
       return Status.OK;
