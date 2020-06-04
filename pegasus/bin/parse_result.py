@@ -74,23 +74,26 @@ def parseLine(line: str, resultTable):
     # Insert
     segments = value.split('\\n[INSERT],')
     segments = list(map(str.strip, segments))
-    # W-QPS
-    ops = parseNum(findAttrKeyInValue(segments, 'Operations,'))
-    qps = ops / runTimeSec
-    # W-AVG-Lat
-    avg = findAttrKeyInValue(segments, 'AverageLatency(us),')
-    # W-P95-Lat
-    p95 = findAttrKeyInValue(segments, '95.0thPercentileLatency(us),')
-    # W-P99-Lat
-    p99 = findAttrKeyInValue(segments, '99.0thPercentileLatency(us),')
-    # W-P999-Lat
-    p999 = findAttrKeyInValue(segments, '99.9thPercentileLatency(us),')
-    # W-P9999-Lat
-    p9999 = findAttrKeyInValue(segments, '99.99thPercentileLatency(us),')
-    # W-MAX-Lat
-    maxL = findAttrKeyInValue(segments, 'MaxLatency(us),')
-    row = row + [int(qps), parseNum(avg), parseNum(p95), parseNum(
+    if len(segments) > 1:
+        # W-QPS
+        ops = parseNum(findAttrKeyInValue(segments, 'Operations,'))
+        qps = ops / runTimeSec
+        # W-AVG-Lat
+        avg = findAttrKeyInValue(segments, 'AverageLatency(us),')
+        # W-P95-Lat
+        p95 = findAttrKeyInValue(segments, '95.0thPercentileLatency(us),')
+        # W-P99-Lat
+        p99 = findAttrKeyInValue(segments, '99.0thPercentileLatency(us),')
+        # W-P999-Lat
+        p999 = findAttrKeyInValue(segments, '99.9thPercentileLatency(us),')
+        # W-P9999-Lat
+        p9999 = findAttrKeyInValue(segments, '99.99thPercentileLatency(us),')
+        # W-MAX-Lat
+        maxL = findAttrKeyInValue(segments, 'MaxLatency(us),')
+        row = row + [int(qps), parseNum(avg), parseNum(p95), parseNum(
         p99), parseNum(p999), parseNum(p9999), parseNum(maxL)]
+    else:  # else: load mode, no write result.
+        row = row + [0, 0, 0, 0, 0, 0, 0]
 
     # Read
     segments = value.split('\\n[READ],')
