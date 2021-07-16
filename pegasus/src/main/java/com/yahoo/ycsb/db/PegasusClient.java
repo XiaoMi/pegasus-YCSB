@@ -254,7 +254,21 @@ public class PegasusClient extends DB {
   public Status scan(
       String table, String startkey, int recordcount, Set<String> fields,
       Vector<HashMap<String, ByteIterator>> result){
-    return Status.NOT_IMPLEMENTED;
+
+    Map<String, ByteIterator> tempresult = new HashMap<String,ByteIterator>();
+    try {
+      List<Pair<byte[], byte[]>> values = new ArrayList<>();
+      boolean res = pegasusClient().multiGet(table, startkey.getBytes(), null, values);
+      if (res && !values.isEmpty()) {
+        for (Pair<byte[], byte[]> value : values) {
+          fromJson(value.getValue(), fields, tempresult);
+        }
+      }
+      return Status.OK;
+    } catch (Exception e) {
+      logger.error("Error multi reading value from table[" + table + "] with key: " + startkey, e);
+      return Status.ERROR;
+    }
   }
 
   @Override
