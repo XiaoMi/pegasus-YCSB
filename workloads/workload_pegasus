@@ -9,7 +9,7 @@ readallfields=true
 readproportion=1
 updateproportion=0
 insertproportion=0
-scanproportion=0
+scanproportion=1
 readmodifywriteproportion=0
 
 requestdistribution=zipfian

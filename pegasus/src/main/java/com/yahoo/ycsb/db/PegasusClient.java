@@ -112,7 +112,7 @@ public class PegasusClient extends DB {
   private void initOperationMode() throws IllegalArgumentException {
     String writeModeStr = getProperties().getProperty(WRITE_MODE, "single");
     String readModeStr = getProperties().getProperty(READ_MODE, "single");
-    String sortKeysCountStr = getProperties().getProperty(SORT_KEY_COUNT, "10");
+    String sortKeysCountStr = getProperties().getProperty(SORT_KEY_COUNT, "1000");
 
     int count = Integer.parseInt(sortKeysCountStr);
     startSortKey = String.valueOf(0).getBytes();
