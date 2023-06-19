@@ -35,7 +35,7 @@ This section describes how to run YCSB on Pegasus.
 ## 1. Start Pegasus service
 
 Ask to Pegasus cluster manager to [start the
-cluster](https://github.com/XiaoMi/pegasus/wiki/%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2), and create table `usertable` for test.
+cluster](https://pegasus.apache.org/zh/overview/onebox/), and create table `usertable` for test.
 
 If you want to use a different table name, please config the `table` option in 
 [`workloads/workload_pegasus`](workloads/workload_pegasus).
@@ -46,11 +46,10 @@ See step 2 in [`mongodb/README.md`](mongodb/README.md).
 
 ## 3. Set up YCSB
 
-Before set up YCSB, you should install [Pegasus Java Client](https://github.com/XiaoMi/pegasus-java-client) firstly:
+Before set up YCSB, you should install [Pegasus Java Client](https://github.com/apache/incubator-pegasus/tree/master/java-client) firstly:
 
-    wget https://github.com/XiaoMi/pegasus-java-client/archive/1.7.1-thrift-0.11.0-inlined-release.tar.gz
-    tar xfz 1.7.1-thrift-0.11.0-inlined-release.tar.gz
-    cd pegasus-java-client-1.7.1-thrift-0.11.0-inlined-release/
+    cd scripts && sh recompile_thrift.sh && cd -
+    mvn spotless:apply
     mvn clean install -DskipTests
 
 Git clone YCSB and build it:
