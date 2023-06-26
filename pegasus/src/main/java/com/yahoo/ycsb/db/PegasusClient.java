@@ -17,7 +17,6 @@
 
 package com.yahoo.ycsb.db;
 
-import com.xiaomi.infra.pegasus.client.*;
 import com.yahoo.ycsb.ByteIterator;
 import com.yahoo.ycsb.DB;
 import com.yahoo.ycsb.DBException;
@@ -29,6 +28,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.pegasus.client.*;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
